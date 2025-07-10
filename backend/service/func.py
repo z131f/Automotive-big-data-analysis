@@ -24,10 +24,19 @@ def insert_data(car_data: List[dict]):
 
 
 def read_data(filters):
+    """
+    filters: 筛选条件
+    example:
+    data = read_data(
+        filters={
+            'city': '成都',
+            'num_doors': 4,
+        }
+    )
+    """
     output = read_from_hive_table(
         table_name='car_data',
         config=HIVE_CONFIG,
         filters=filters
     )
-
-    {'}
+    return output['data']

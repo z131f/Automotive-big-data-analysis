@@ -151,7 +151,7 @@ def read_from_hive_table(table_name: str, config: dict, filters: dict = None) ->
                 where_clause = " WHERE " + " AND ".join(filter_conditions)
 
         select_sql = f"SELECT * FROM {config['database']}.{table_name}{where_clause};"
-        logging.info(f"執行查詢 SQL:\n{select_sql}")
+        logging.info(f"执行查询 SQL:\n{select_sql}")
         cursor.execute(select_sql)
 
         columns = [col[0] for col in cursor.description]
@@ -160,11 +160,11 @@ def read_from_hive_table(table_name: str, config: dict, filters: dict = None) ->
         for row in rows:
             results.append(dict(zip(columns, row)))
 
-        return {"status": "success", "data": results, "message": f"成功從表 '{table_name}' 讀取 {len(results)} 行數據。"}
+        return {"status": "success", "data": results, "message": f"成功从表 '{table_name}' 读取 {len(results)} 行数据"}
 
     except Exception as e:
-        logging.error(f"從表 '{table_name}' 讀取數據失敗: {e}")
-        return {"status": "error", "message": f"讀取數據失敗: {e}"}
+        logging.error(f"从表 '{table_name}' 读取数据失败: {e}")
+        return {"status": "error", "message": f"读取数据失败: {e}"}
     finally:
         if conn:
             conn.close()
