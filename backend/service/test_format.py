@@ -34,7 +34,7 @@ sample_data = [
         'fuel_capacity': 60.0,
         'popularity': 85,
         'discount_percentage': 2.5,
-        'historical_price': {'2025.7': 180000.00, '2025.6': 179000.00, '2025.5': 178500.00}, # 列表
+        'historical_price': {'2025.7': 180000, '2025.6': 179000, '2025.5': 178500}, # 列表
         'city_license_plates': {'北京': 1200, '上海': 1000}, # 字典
     },
     {
@@ -50,7 +50,7 @@ sample_data = [
         'fuel_capacity': 0.0, # 电动车油量为0
         'popularity': 95,
         'discount_percentage': 1.0,
-        'historical_price': {'2025.8': 250000.00, '2024.6': 248000.00},
+        'historical_price': {'2025.8': 250000, '2024.6': 248000},
         'city_license_plates': {'上海': 1500, '深圳': 800},
     },
 {
@@ -66,13 +66,12 @@ sample_data = [
         'fuel_capacity': 0.0, # 电动车油量为0
         'popularity': 95,
         'discount_percentage': 1.0,
-        'historical_price': {'2025.8': 250000.00, '2024.6': 248000.00},
+        'historical_price': {'2025.8': 250000, '2024.6': 248000},
         'city_license_plates': {'上海': 1500, '深圳': 800},
     }
 ]
 
 data = sample_data
-
 
 columns = list(schema.keys())
 
@@ -96,8 +95,8 @@ for row_dict in data:
                 # 对于字符串键值，加上单引号
                 formatted_k = f"'{k}'" if isinstance(k, str) else str(k)
                 formatted_v = f"'{v}'" if isinstance(v, str) else str(v)
-                formatted_items.append(f"{formatted_k}:{formatted_v}")
-            row_values_formatted.append(f"'{'{'}{','.join(formatted_items)}{'}'}'")
+                formatted_items.append(f"{formatted_k}, {formatted_v}")
+            row_values_formatted.append(f"map({', '.join(formatted_items)})")
         elif isinstance(value, str):
             # 对于普通字符串，直接用单引号包裹，不进行内部转义
             row_values_formatted.append(f"'{value}'")
@@ -106,7 +105,7 @@ for row_dict in data:
 
     all_rows_values.append(f"({', '.join(row_values_formatted)})")
 
-insert_sql = f"INSERT INTO TABLE {table_name} VALUES {', '.join(all_rows_values)}"
+insert_sql = f"INSERT INTO TABLE {config['database']}.{table_name} VALUES {', '.join(all_rows_values)}"
 
 print(insert_sql)
 

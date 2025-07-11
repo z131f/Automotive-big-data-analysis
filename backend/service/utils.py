@@ -100,8 +100,8 @@ def insert_into_hive_table(table_name, data, schema, config):
                         # 对于字符串键值，加上单引号
                         formatted_k = f"'{k}'" if isinstance(k, str) else str(k)
                         formatted_v = f"'{v}'" if isinstance(v, str) else str(v)
-                        formatted_items.append(f"{formatted_k}:{formatted_v}")
-                    row_values_formatted.append(f"'{'{'}{','.join(formatted_items)}{'}'}'")
+                        formatted_items.append(f"{formatted_k}, {formatted_v}")
+                    row_values_formatted.append(f"map({', '.join(formatted_items)})")
                 elif isinstance(value, str):
                     # 对于普通字符串，直接用单引号包裹，不进行内部转义
                     row_values_formatted.append(f"'{value}'")
