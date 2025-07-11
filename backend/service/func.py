@@ -23,7 +23,7 @@ def insert_data(car_data: List[dict]):
     print(insert_result)
 
 
-def read_data(filters):
+def read_data_with_filters(filters=None, name='*', is_distinct=False):
     """
     filters: 筛选条件
     example:
@@ -34,9 +34,13 @@ def read_data(filters):
         }
     )
     """
+    if is_distinct:
+        assert name != '*'
+        name = f'DISTINCT {name}'
     output = read_from_hive_table(
         table_name='car_data',
         config=HIVE_CONFIG,
-        filters=filters
+        filters=filters,
+        name=name
     )
     return output['data']

@@ -122,7 +122,7 @@ def insert_into_hive_table(table_name: str, data: list[dict], schema: dict, conf
             conn.close()
 
 
-def read_from_hive_table(table_name: str, config: dict, filters: dict = None) -> dict:
+def read_from_hive_table(table_name: str, config: dict, filters: dict = None, name = '*') -> dict:
     """
     從 Hive 表中讀取數據。
 
@@ -150,7 +150,7 @@ def read_from_hive_table(table_name: str, config: dict, filters: dict = None) ->
             if filter_conditions:
                 where_clause = " WHERE " + " AND ".join(filter_conditions)
 
-        select_sql = f"SELECT * FROM {config['database']}.{table_name}{where_clause};"
+        select_sql = f"SELECT {name} FROM {config['database']}.{table_name}{where_clause};"
         logging.info(f"执行查询 SQL:\n{select_sql}")
         cursor.execute(select_sql)
 
