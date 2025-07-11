@@ -1,6 +1,6 @@
-from .config import HIVE_CONFIG, car_data_schema
-from .utils import create_hive_table, insert_into_hive_table, read_from_hive_table
-from .func import setup_environment, insert_data, read_data_with_filters
+from config import HIVE_CONFIG, car_data_schema
+from utils import create_hive_table, insert_into_hive_table, read_from_hive_table
+from func import setup_environment, insert_data, read_data_with_filters
 
 setup_environment()
 sample_data = [

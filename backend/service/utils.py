@@ -11,7 +11,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def create_hive_table(table_name: str, schema: dict, config: dict) -> dict:
+def create_hive_table(table_name, schema, config):
     """
     在 Hive 中創建數據表，适配 car_data 表結構。
 
@@ -57,7 +57,7 @@ def create_hive_table(table_name: str, schema: dict, config: dict) -> dict:
             conn.close()
 
 
-def insert_into_hive_table(table_name: str, data: list[dict], schema: dict, config: dict) -> dict:
+def insert_into_hive_table(table_name, data, schema, config):
     """
     將數據插入到 Hive 表中，适配 car_data 表結構，並處理 ARRAY 和 MAP 類型。
 
@@ -124,7 +124,7 @@ def insert_into_hive_table(table_name: str, data: list[dict], schema: dict, conf
             conn.close()
 
 
-def read_from_hive_table(table_name: str, config: dict, filters: dict = None, name = '*') -> dict:
+def read_from_hive_table(table_name, config, filters = None, name = '*'):
     """
     從 Hive 表中讀取數據。
 

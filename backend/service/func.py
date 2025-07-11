@@ -13,7 +13,7 @@ def setup_environment():
     print(create_table_result)
 
 
-def insert_data(car_data: List[dict]):
+def insert_data(car_data):
     insert_result = insert_into_hive_table(
         table_name='car_data',
         data=car_data,
