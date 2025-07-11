@@ -1,1 +1,15 @@
+bitarray==2.9.3
+charset-normalizer==3.4.2
+docopt==0.6.2
+future==1.0.0
+idna==3.10
 impyla==0.21.0
+pipreqs==0.4.13
+pure-sasl==0.6.2
+requests==2.31.0
+six==1.17.0
+thrift==0.16.0
+thrift-sasl==0.4.3
+urllib3==2.0.7
+wincertstore==0.2
+yarg==0.1.10
