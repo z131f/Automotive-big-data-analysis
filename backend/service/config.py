@@ -1,7 +1,7 @@
 HIVE_CONFIG = {
-    "host": "your_hiveserver2_host",  # 例如: "localhost" 或 HiveServer2 所在服务器的 IP
+    "host": "192.168.10.129",  # 例如: "localhost" 或 HiveServer2 所在服务器的 IP
     "port": 10000,                  # HiveServer2 默认端口通常是 10000
-    "auth_mechanism": "PLAIN",      # 认证机制，根据您的 Hive 配置选择 (PLAIN, KERBEROS, LDAP, NOSASL 等)
+    "auth_mechanism": "NOSASL",      # 认证机制，根据您的 Hive 配置选择 (PLAIN, KERBEROS, LDAP, NOSASL 等)
     "database": "default"           # 默认数据库
 }
 
