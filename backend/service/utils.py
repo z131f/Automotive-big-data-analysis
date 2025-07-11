@@ -28,20 +28,22 @@ def create_hive_table(table_name: str, schema: dict, config: dict) -> dict:
         conn = connect(**config)
         cursor = conn.cursor()
 
+        drop_sql = 'DROP TABLE IF EXISTS car_data'
+
+        cursor.execute(drop_sql)
+
         columns_sql = []
         for col_name, col_type in schema.items():
-            columns_sql.append(f"{col_name} {col_type} COMMENT '{col_name}字段'")
+            columns_sql.append(f"{col_name} {col_type}")
 
         create_table_sql = f"""
-        CREATE TABLE IF NOT EXISTS {config['database']}.{table_name} (
+        CREATE TABLE IF NOT EXISTS {table_name} (
             {', '.join(columns_sql)}
         )
-        COMMENT '由Python腳本創建的汽車數據表'
         ROW FORMAT DELIMITED
         FIELDS TERMINATED BY '\\t'
         COLLECTION ITEMS TERMINATED BY ','
         MAP KEYS TERMINATED BY ':'
-        STORED AS TEXTFILE;
         """
         logging.info(f"執行建表 SQL:\n{create_table_sql}")
         cursor.execute(create_table_sql)
