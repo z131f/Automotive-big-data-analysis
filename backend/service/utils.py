@@ -152,7 +152,7 @@ def read_from_hive_table(table_name, config, filters = None, name = '*'):
             if filter_conditions:
                 where_clause = " WHERE " + " AND ".join(filter_conditions)
 
-        select_sql = f"SELECT {name} FROM {config['database']}.{table_name}{where_clause};"
+        select_sql = f"SELECT {name} FROM {config['database']}.{table_name}{where_clause}"
         logging.info(f"执行查询 SQL:\n{select_sql}")
         cursor.execute(select_sql)
 
