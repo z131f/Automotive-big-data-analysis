@@ -22,7 +22,7 @@ FIELD_MAPPING = {
     'popularity': 'attention',
     'discount_percentage': 'discount',
     'car_type': 'car_type',
-    'manufacture_year': 'manufacture_year'
+    #'manufacture_year': 'manufacture_year'
 }
 
 # 反转映射（前端字段 -> 数据库字段）
