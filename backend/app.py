@@ -4,7 +4,8 @@ import pandas as pd
 import os
 import uuid
 from collections import defaultdict
-from func import read_data_with_filters  # 新增导入
+from func import read_data_with_filters, insert_data  # Ensure insert_data is imported
+import json  # Import json module
 
 app = Flask(__name__)
 CORS(app)
@@ -42,13 +43,31 @@ def fetch_car_data():
             car[front_field] = item.get(db_field)
 
         # 添加原始数据中的关键字段（不在映射中）
-        car['city_license_plates'] = item.get('city_license_plates', {})
+        # Ensure these are parsed from string if they come from Hive as such
+        city_license_plates_raw = item.get('city_license_plates', {})
+        if isinstance(city_license_plates_raw, str):
+            try:
+                car['city_license_plates'] = json.loads(city_license_plates_raw)
+            except json.JSONDecodeError:
+                car['city_license_plates'] = {}  # Fallback if not valid JSON
+        else:
+            car['city_license_plates'] = city_license_plates_raw
+
         car['manufacture_year'] = item.get('manufacture_year')
 
         # 处理历史价格
         history_prices = []
-        if 'historical_price' in item and isinstance(item['historical_price'], dict):
-            for date, price in item['historical_price'].items():
+        historical_price_raw = item.get('historical_price', {})
+        if isinstance(historical_price_raw, str):
+            try:
+                historical_price_dict = json.loads(historical_price_raw)
+            except json.JSONDecodeError:
+                historical_price_dict = {}  # Fallback if not valid JSON
+        else:
+            historical_price_dict = historical_price_raw
+
+        if isinstance(historical_price_dict, dict):
+            for date, price in historical_price_dict.items():
                 history_prices.append({'date': date, 'price': price})
         car['history_prices'] = history_prices
 
@@ -67,11 +86,22 @@ def fetch_city_data():
     # 汇总城市数据
     city_registrations = {}
     for item in raw_data:
-        if not item.get('city_license_plates'):
+        city_license_plates_raw = item.get('city_license_plates')
+
+        # Parse if it's a string (e.g., from Hive)
+        if isinstance(city_license_plates_raw, str):
+            try:
+                city_license_plates_dict = json.loads(city_license_plates_raw)
+            except json.JSONDecodeError:
+                city_license_plates_dict = {}  # Fallback
+        else:
+            city_license_plates_dict = city_license_plates_raw
+
+        if not city_license_plates_dict:
             continue
 
-        if isinstance(item['city_license_plates'], dict):
-            for city, count in item['city_license_plates'].items():
+        if isinstance(city_license_plates_dict, dict):
+            for city, count in city_license_plates_dict.items():
                 city_registrations[city] = city_registrations.get(city, 0) + count
 
     # 转换为前端格式
@@ -105,7 +135,16 @@ def fetch_market_trends_data():
 
         # 计算该车型的总注册量（所有城市）
         registrations = 0
-        license_plates = car.get('city_license_plates', {})
+        license_plates_raw = car.get('city_license_plates', {})
+        # Ensure city_license_plates is a dict before summing values
+        if isinstance(license_plates_raw, str):  # This might happen if fetch_car_data didn't parse it
+            try:
+                license_plates = json.loads(license_plates_raw)
+            except json.JSONDecodeError:
+                license_plates = {}
+        else:
+            license_plates = license_plates_raw
+
         if isinstance(license_plates, dict):
             registrations = sum(license_plates.values())
 
@@ -136,8 +175,18 @@ def fetch_consumer_preferences():
     # 计算总注册量
     total_registrations = 0
     for car in cars:
-        if 'city_license_plates' in car and isinstance(car['city_license_plates'], dict):
-            total_registrations += sum(car['city_license_plates'].values())
+        license_plates_raw = car.get('city_license_plates')
+        # Ensure city_license_plates is a dict before summing values
+        if isinstance(license_plates_raw, str):
+            try:
+                license_plates = json.loads(license_plates_raw)
+            except json.JSONDecodeError:
+                license_plates = {}
+        else:
+            license_plates = license_plates_raw
+
+        if isinstance(license_plates, dict):
+            total_registrations += sum(license_plates.values())
 
     if total_registrations == 0:
         return []
@@ -150,8 +199,18 @@ def fetch_consumer_preferences():
         if car_type == '新能源':
             car_type = '电动汽车'
 
-        if 'city_license_plates' in car and isinstance(car['city_license_plates'], dict):
-            type_data[car_type] += sum(car['city_license_plates'].values())
+        license_plates_raw = car.get('city_license_plates')
+        # Ensure city_license_plates is a dict before summing values
+        if isinstance(license_plates_raw, str):
+            try:
+                license_plates = json.loads(license_plates_raw)
+            except json.JSONDecodeError:
+                license_plates = {}
+        else:
+            license_plates = license_plates_raw
+
+        if isinstance(license_plates, dict):
+            type_data[car_type] += sum(license_plates.values())
 
     # 构建偏好数据
     preferences = []
@@ -206,42 +265,50 @@ def upload_excel():
 
             # 2. 转换字段名：前端字段 -> 数据库字段
             for record in data_list:
-                # 创建新字典存储转换后的字段
+                # Create a new dictionary to store converted fields
                 converted_record = {}
 
-                # 转换映射字段
+                # Convert mapped fields
                 for front_field, db_field in REVERSE_MAPPING.items():
                     if front_field in record:
                         converted_record[db_field] = record[front_field]
 
-                # 添加非映射字段（直接使用数据库字段名）
+                # Add non-mapped fields (directly use database field names)
                 non_mapped_fields = ['city', 'manufacture_year', 'fuel_capacity',
-                                    'historical_price', 'city_license_plates']
+                                     'historical_price', 'city_license_plates']
                 for field in non_mapped_fields:
                     if field in record:
-                        converted_record[field] = record[field]
+                        value = record[field]
+                        # IMPORTANT: Parse JSON strings back to Python objects for MAP types
+                        if field in ['historical_price', 'city_license_plates'] and isinstance(value, str):
+                            try:
+                                converted_record[field] = json.loads(value)
+                            except json.JSONDecodeError:
+                                # Handle cases where the string might not be valid JSON
+                                converted_record[field] = {}  # Default to empty dict or handle error
+                        else:
+                            converted_record[field] = value
 
-                # 更新原始记录
+                # Update the original record
                 record.clear()
                 record.update(converted_record)
 
             # 3. 插入数据到Hive
-            from func import insert_data  # 延迟导入避免循环依赖
             insert_data(data_list)
 
             processed_count = len(df)
 
-            # 实际应用中这里会有数据库插入逻辑
+            # Actual application logic would involve database insertion here
             return jsonify({
                 'status': 'success',
                 'message': f'成功插入{processed_count} 行数到表'
             }), 200
         except Exception as e:
-            # 捕获Excel解析错误
-            app.logger.error(f'Error parsing Excel file: {str(e)}')
-            return jsonify({'error': 'Invalid Excel file content'}), 400
+            # Catch Excel parsing errors or database insertion errors
+            app.logger.error(f'Error processing Excel file or inserting data: {str(e)}')
+            return jsonify({'error': f'Invalid Excel file content or database error: {str(e)}'}), 400
         finally:
-            # 清理上传的文件
+            # Clean up the uploaded file
             if os.path.exists(file_path):
                 os.remove(file_path)
     except Exception as e:

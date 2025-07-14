@@ -344,3 +344,4 @@ def test_upload_excel_empty_file(client, tmp_path):
     data = json.loads(response.data)
     assert 'error' in data
     assert 'Excel file is empty' in data['error']
+    
