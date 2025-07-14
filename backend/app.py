@@ -4,7 +4,7 @@ import pandas as pd
 import os
 import uuid
 from collections import defaultdict
-from func import read_data_with_filters  # 新增导入
+from func import read_data_with_filters, insert_data, rand_data_generate
 
 app = Flask(__name__)
 CORS(app)
@@ -226,7 +226,7 @@ def upload_excel():
                 record.update(converted_record)
 
             # 3. 插入数据到Hive
-            from func import insert_data  # 延迟导入避免循环依赖
+            #from func import insert_data  # 延迟导入避免循环依赖
             insert_data(data_list)
 
             processed_count = len(df)
@@ -248,6 +248,35 @@ def upload_excel():
         app.logger.error(f'File upload error: {str(e)}')
         return jsonify({'error': 'Internal server error'}), 500
 
+# 新增：随机数据生成API
+'''
+@app.route('/api/v1/generate/random', methods=['POST'])
+def generate_random_data():
+    try:
+        # 获取请求中的记录数量
+        num_records = request.json.get('num_records', 100)
+
+        # 验证记录数量
+        if num_records <= 0:
+            return jsonify({'error': 'Number of records must be positive'}), 400
+        if num_records > 10000:
+            return jsonify({'error': 'Number of records cannot exceed 10000'}), 400
+
+        # 生成随机数据
+        random_data = rand_data_generate(num_records)
+
+        # 插入数据到Hive
+        insert_data(random_data)
+
+        return jsonify({
+            'status': 'success',
+            'message': f'成功生成并插入 {num_records} 条随机数据'
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f'Random data generation error: {str(e)}')
+        return jsonify({'error': 'Internal server error'}), 500
+'''
 
 # 品牌与车型深度分析API
 @app.route('/api/v1/brands', methods=['GET'])
